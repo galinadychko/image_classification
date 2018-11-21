@@ -7,6 +7,12 @@ import functools
 import itertools
 import matplotlib.pyplot as plt
 
+import plotly.graph_objs as go
+from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
+init_notebook_mode(connected=True)
+
+import warnings
+warnings.filterwarnings("ignore")
 
 
 project_path = os.path.abspath(os.pardir)
@@ -34,6 +40,8 @@ def transform_random(angle, sigma):
                                      random_imgs + "/" + elem)
                     img.rotate(angle).save(kwargs["folder_path"]+"/"+
                                            random_imgs+"/"+"r"+elem)
+                    img.rotate(-angle).save(kwargs["folder_path"] + "/" +
+                                           random_imgs + "/" + "ro" + elem)
 
                     im = np.array(img.convert('L'))
                     im_blur = filters.gaussian_filter(im, sigma)
@@ -79,8 +87,9 @@ def final_prepar_img_list(folder_path):
     for number in os.listdir(folder_path):
         for pctr in os.listdir(folder_path + "/" + number):
             img = Image.open(folder_path + "/" + number + "/" + pctr)
+            img.save(project_path+"/data/hist_eq/"+number+"_"+pctr)
             vector, _ = histeq(np.array(img))
-            Image.fromarray(np.uint8(vector)).save(project_path+"/data/hist_eq/"+number+"_"+pctr)
+            Image.fromarray(np.uint8(vector)).save(project_path+"/data/hist_eq/"+number+"_heq_"+pctr)
 
 
 def pca(X):
@@ -149,3 +158,41 @@ def plot_confusion_matrix(cm, classes,
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
     plt.tight_layout()
+
+
+def img_vizualisation(link_to_img):
+    img_width = 1600
+    img_height = 900
+    scale_factor = 0.5
+
+    layout = go.Layout(
+        xaxis=go.layout.XAxis(
+            visible=False,
+            range=[0, img_width * scale_factor]),
+        yaxis=go.layout.YAxis(
+            visible=False,
+            range=[0, img_height * scale_factor],
+            # the scaleanchor attribute ensures that the aspect ratio stays constant
+            scaleanchor='x'),
+        width=img_width * scale_factor,
+        height=img_height * scale_factor,
+        margin={'l': 0, 'r': 0, 't': 0, 'b': 0},
+        images=[go.layout.Image(
+            x=0,
+            sizex=img_width * scale_factor,
+            y=img_height * scale_factor,
+            sizey=img_height * scale_factor,
+            xref="x",
+            yref="y",
+            opacity=1.0,
+            layer="below",
+            sizing="stretch",
+            source=link_to_img)]
+    )
+    # we add a scatter trace with data points in opposite corners to give the Autoscale feature a reference point
+    fig = go.Figure(data=[{
+        'x': [0, img_width * scale_factor],
+        'y': [0, img_height * scale_factor],
+        'mode': 'markers',
+        'marker': {'opacity': 0}}], layout=layout)
+    iplot(fig)

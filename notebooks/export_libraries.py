@@ -11,3 +11,7 @@ from sklearn.cross_validation import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
+
+import warnings
+warnings.filterwarnings("ignore")
+
